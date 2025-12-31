@@ -54,8 +54,8 @@ function App() {
       postalCode: trimmed.postalCode,
     };
 
-    // TODO: insérer ici l’URL du webhook Make.com pour recevoir les leads
-    const webhookUrl = '';
+const webhookUrl = 'https://hook.eu2.make.com/uubs9wobqfawvtv44qyu9gagh0pjc9cw';
+;
 
     try {
       if (!webhookUrl) {
@@ -124,6 +124,7 @@ function App() {
             </div>
             <div className="hero-card">
               <div className="card">
+                <img src="/images/rahshaud.png" alt="Photo de Rahshaud Ware" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', marginBottom: '0.8rem' }} />
                 <h2>Ce que vous recevez</h2>
                 <ul>
                   <li>Audit des accès sensibles et points faibles</li>

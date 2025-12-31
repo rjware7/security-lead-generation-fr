@@ -1,109 +1,67 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('lead-form');
-  const statusEl = document.getElementById('form-status');
-  const submitBtn = document.getElementById('submit-btn');
-  const accordion = document.getElementById('faq-accordion');
-  const phonePattern = /^[0-9+().\s-]{8,}$/;
-  const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("lead-form");
+  const statusEl = document.getElementById("form-status");
+  const submitBtn = document.getElementById("submit-btn");
 
-  if (accordion) {
-    accordion.querySelectorAll('.accordion__item').forEach((item) => {
-      const btn = item.querySelector('.accordion__button');
-      btn.addEventListener('click', () => {
-        item.classList.toggle('active');
-      });
-    });
-  }
+  const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/uubs9wobqfawvtv44qyu9gagh0pjc9cw";
 
   if (!form) return;
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    clearErrors();
-    if (statusEl) setStatus('Envoi en cours...', '');
-    setLoading(true);
+  function setStatus(msg, type = "") {
+    if (!statusEl) return;
+    statusEl.className = `form-status ${type}`.trim();
+    statusEl.textContent = msg;
+  }
 
-    const data = new FormData(form);
-    const payload = {
-      fullName: (data.get('fullName') || '').trim(),
-      phone: (data.get('phone') || '').trim(),
-      email: (data.get('email') || '').trim(),
-      address: (data.get('address') || '').trim(),
-      city: (data.get('city') || '').trim(),
-      postalCode: (data.get('postalCode') || '').trim(),
-      consent: form.elements.consent?.checked,
-    };
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    let hasError = false;
-
-    if (!payload.fullName) hasError = showError('fullName', 'Nom requis.');
-    if (!payload.phone) hasError = showError('phone', 'Téléphone requis.') || hasError;
-    if (payload.phone && !phonePattern.test(payload.phone)) {
-      hasError = showError('phone', 'Format de téléphone invalide.') || hasError;
-    }
-    if (payload.email && !emailPattern.test(payload.email)) {
-      hasError = showError('email', 'Format d’email invalide.');
-    }
-    if (!payload.address) hasError = showError('address', 'Adresse requise.') || hasError;
-    if (!payload.city) hasError = showError('city', 'Ville requise.') || hasError;
-    if (!payload.postalCode) hasError = showError('postalCode', 'Code postal requis.') || hasError;
-    if (!payload.consent) hasError = showError('consent', 'Merci d’accepter d’être contacté(e).') || hasError;
-
-    if (hasError) {
-      setStatus('Merci de corriger les champs indiqués.', 'error');
-      setLoading(false);
+    // Basic required check
+    const consent = document.getElementById("consent");
+    if (consent && !consent.checked) {
+      setStatus("Veuillez accepter d’être contacté(e).", "error");
       return;
     }
 
-    // INSERT MAKE.COM WEBHOOK HERE
-    const webhookUrl = '';
+    const payload = {
+      fullName: form.fullName?.value?.trim() || "",
+      phone: form.phone?.value?.trim() || "",
+      email: form.email?.value?.trim() || "",
+      address: form.address?.value?.trim() || "",
+      city: form.city?.value?.trim() || "",
+      postalCode: form.postalCode?.value?.trim() || "",
+      consent: !!consent?.checked,
+      source: "website",
+      pageUrl: window.location.href,
+      submittedAt: new Date().toISOString()
+    };
 
     try {
-      if (!webhookUrl) throw new Error('Webhook manquant');
+      if (submitBtn) submitBtn.disabled = true;
+      setStatus("Envoi en cours…");
 
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      // IMPORTANT:
+      // If CORS blocks fetch, this will throw.
+      // We'll still give user a success-style message only if request succeeds.
+      const res = await fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
 
-      if (!response.ok) {
-        throw new Error(`Webhook responded with ${response.status}`);
-      }
+      if (!res.ok) throw new Error(`Webhook HTTP ${res.status}`);
 
-      setStatus('Merci, votre demande est bien enregistrée. Un conseiller vous recontacte sous 24h.', 'success');
+      setStatus("Demande envoyée ✅ Je vous contacte sous 24h.", "success");
       form.reset();
-    } catch (error) {
-      console.error(error);
-      setStatus('Ajoutez l’URL du webhook Make.com ou réessayez dans un instant.', 'error');
+
+    } catch (err) {
+      console.error("Form submit error:", err);
+      setStatus(
+        "Erreur d’envoi. Merci de réessayer ou appelez-moi au +33 7 63 55 96 00.",
+        "error"
+      );
     } finally {
-      setLoading(false);
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
-
-  function showError(field, message) {
-    const errorEl = document.querySelector(`[data-error-for="${field}"]`);
-    if (errorEl) errorEl.textContent = message;
-    return true;
-  }
-
-  function clearErrors() {
-    document.querySelectorAll('.error').forEach((el) => {
-      el.textContent = '';
-    });
-  }
-
-  function setStatus(message, type) {
-    if (!statusEl) return;
-    statusEl.textContent = message;
-    statusEl.classList.remove('success', 'error');
-    if (type) statusEl.classList.add(type);
-  }
-
-  function setLoading(isLoading) {
-    if (!submitBtn) return;
-    submitBtn.disabled = isLoading;
-    submitBtn.style.opacity = isLoading ? '0.7' : '1';
-    submitBtn.textContent = isLoading ? 'Envoi...' : 'Demander mon étude gratuite';
-  }
 });

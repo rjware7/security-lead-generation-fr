@@ -50,11 +50,13 @@
           </div>
           <div class="person-card">
             <div class="avatar">
-              <img src="/images/rahshaud.png" alt="Photo de Rahshaud Ware" onerror="this.style.opacity='0.1';">
+              <img src="/images/rahshaud.png" alt="Photo de Rahshaud Ware">
+              <div class="avatar-fallback" aria-hidden="true">RW</div>
             </div>
             <div>
               <p class="person-name">Rahshaud Ware</p>
               <p class="person-meta">Matricule professionnel : 343552</p>
+              <p class="person-meta">Agence 201 — 300 Rue de Lille, 59520 Marquette-lez-Lille</p>
               <p class="person-contact"><a href="tel:+33763559600">+33 7 63 55 96 00</a> • <a href="mailto:solutions.securite.fr@gmail.mail">solutions.securite.fr@gmail.mail</a></p>
             </div>
           </div>
@@ -173,12 +175,14 @@
             <div class="person-card alt">
               <p class="mini tag">Contact direct</p>
               <div class="avatar">
-                <img src="/images/rahshaud.png" alt="Photo de Rahshaud Ware" onerror="this.style.opacity='0.1';">
+                <img src="/images/rahshaud.png" alt="Photo de Rahshaud Ware">
+                
               </div>
               <div>
                 <p class="person-name">Rahshaud Ware</p>
                 <p class="person-meta">Matricule professionnel : 343552</p>
-            <p class="person-meta">Expert sécurité</p>
+                <p class="person-meta">Expert sécurité</p>
+                <p class="person-meta">Agence 201 — 300 Rue de Lille, 59520 Marquette-lez-Lille</p>
               </div>
             </div>
             <div class="contact-actions">
@@ -197,11 +201,13 @@
               <div class="field">
                 <label for="phone">Téléphone <span class="req">*</span></label>
                 <input type="tel" id="phone" name="phone" placeholder="06 12 34 56 78" required autocomplete="tel">
+                <p class="helper">Utilisé uniquement pour vous contacter au sujet de l’étude.</p>
                 <small class="error" data-error-for="phone"></small>
               </div>
               <div class="field">
                 <label for="email">Email (optionnel)</label>
                 <input type="email" id="email" name="email" placeholder="vous@example.com" autocomplete="email">
+                <p class="helper">Optionnel. Aucun spam.</p>
                 <small class="error" data-error-for="email"></small>
               </div>
               <div class="field">
@@ -209,22 +215,39 @@
                 <input type="text" id="address" name="address" placeholder="N° et rue" required autocomplete="address-line1">
                 <small class="error" data-error-for="address"></small>
               </div>
-              <div class="field">
-                <label for="city">Ville <span class="req">*</span></label>
-                <input type="text" id="city" name="city" placeholder="Ville" required autocomplete="address-level2">
-                <small class="error" data-error-for="city"></small>
-              </div>
-              <div class="field">
-                <label for="postalCode">Code postal <span class="req">*</span></label>
-                <input type="text" id="postalCode" name="postalCode" placeholder="75000" required autocomplete="postal-code" inputmode="numeric">
-                <small class="error" data-error-for="postalCode"></small>
-              </div>
+            <div class="field">
+              <label for="city">Ville <span class="req">*</span></label>
+              <input type="text" id="city" name="city" placeholder="Ville" required autocomplete="address-level2">
+              <small class="error" data-error-for="city"></small>
             </div>
+            <div class="field">
+              <label for="postalCode">Code postal <span class="req">*</span></label>
+              <input type="text" id="postalCode" name="postalCode" placeholder="75000" required autocomplete="postal-code" inputmode="numeric">
+              <small class="error" data-error-for="postalCode"></small>
+            </div>
+            <div class="field honeypot-field" aria-hidden="true">
+              <label for="company">Entreprise</label>
+              <input type="text" id="company" name="company" autocomplete="off" tabindex="-1">
+            </div>
+            <div class="field">
+              <label for="preferredTime">Moment de contact (optionnel)</label>
+              <select id="preferredTime" name="preferredTime">
+                <option value="">Peu importe</option>
+                <option value="Matin">Matin</option>
+                <option value="Après-midi">Après-midi</option>
+                <option value="Soir">Soir</option>
+              </select>
+            </div>
+          </div>
             <div class="consent">
               <input type="checkbox" id="consent" name="consent" required>
               <label for="consent">J’accepte d’être contacté(e) pour la réalisation de l’étude de sécurité. <span class="req">*</span></label>
             </div>
             <small class="error" data-error-for="consent"></small>
+            <div class="consent optional">
+              <input type="checkbox" id="smsOptIn" name="smsOptIn">
+              <label for="smsOptIn">J’accepte d’être contacté(e) par SMS (optionnel)</label>
+            </div>
             <div class="disclaimer-inline">
               Expert sécurité employé par Verisure.
             </div>
@@ -234,7 +257,13 @@
               <li>Données protégées (RGPD)</li>
               <li>Conseiller unique : Rahshaud Ware</li>
             </ul>
+            <p class="mini reassurance-line">Gratuit • Sans engagement • Aucun paiement maintenant</p>
+            <p class="mini privacy-note">Vos données servent uniquement à vous recontacter pour l’étude. Pas de revente.</p>
             <button type="submit" class="button primary full" id="submit-btn">Demander mon étude gratuite</button>
+            <div id="success-box" class="success-box" role="status" aria-live="polite" hidden>
+              <h4>Demande envoyée ✅</h4>
+              <p>Je vous contacte sous 24h. Vous pouvez aussi m’appeler directement.</p>
+            </div>
             <p id="form-status" class="form-status" aria-live="polite" role="status"></p>
           </form>
         </div>
@@ -246,6 +275,9 @@
         <div class="section__header">
           <h2>Questions fréquentes</h2>
           <p>Réponses courtes pour décider en confiance.</p>
+        </div>
+        <div class="faq-cta">
+          <a class="button primary" href="#contact">Demander mon étude gratuite</a>
         </div>
         <div class="accordion" id="faq-accordion">
           <div class="accordion__item">
@@ -312,6 +344,10 @@
         <a href="#hero">Haut de page</a>
         <a href="#faq">FAQ</a>
         <a href="#rgpd">Confidentialité</a>
+        <a class="social-link" href="https://www.facebook.com/SolutionsDeSecuriteFrance" target="_blank" rel="noreferrer">
+          <span aria-hidden="true">f</span>
+          <span class="sr-only">Facebook Solutions de Sécurité France</span>
+        </a>
       </div>
     </div>
   </footer>
