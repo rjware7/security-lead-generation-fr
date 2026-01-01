@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const debugLog = (...args) => {
     if (DEBUG) console.log(...args);
   };
-
+ 
   if (!form || !statusEl || !submitBtn) return;
 
   if (form.dataset.handlerAttached) return;
