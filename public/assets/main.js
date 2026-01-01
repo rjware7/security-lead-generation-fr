@@ -1,9 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const DEBUG = false;
+  const webhook = "https://hook.eu2.make.com/uubs9wobqfawvtv44qyu9gagh0pjc9cw";
   const form = document.getElementById("lead-form");
   const statusEl = document.getElementById("form-status");
   const submitBtn = document.getElementById("submit-btn");
   const successBox = document.getElementById("success-box");
-  const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/uubs9wobqfawvtv44qyu9gagh0pjc9cw";
+
+  const debugLog = (...args) => {
+    if (DEBUG) console.log(...args);
+  };
 
   const showInitError = () => {
     if (document.querySelector(".script-error-banner")) return;
@@ -18,6 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  if (form.dataset.handlerAttached) {
+    debugLog("[lead-form] handler already attached");
+    return;
+  }
+  form.dataset.handlerAttached = "true";
+  debugLog("[lead-form] form handler attached");
+
   const setStatus = (message, type = "") => {
     statusEl.className = `form-status ${type}`.trim();
     statusEl.textContent = message;
@@ -28,74 +40,68 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.setAttribute("aria-busy", String(isSubmitting));
   };
 
+  const scrollToSuccess = () => {
+    if (successBox) {
+      successBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (successBox) successBox.hidden = true;
     toggleSubmitting(true);
     setStatus("Envoi…");
 
-    const payload = {
-      fullName: form.fullName?.value?.trim() || "",
-      phone: form.phone?.value?.trim() || "",
-      email: form.email?.value?.trim() || "",
-      address: form.address?.value?.trim() || "",
-      city: form.city?.value?.trim() || "",
-      postalCode: form.postalCode?.value?.trim() || "",
-      consent: !!form.consent?.checked,
-      contactTime: form.contactTime?.value || "",
-      smsOptIn: !!form.smsOptIn?.checked,
-      company: form.company?.value?.trim() || "",
-      pageUrl: window.location.href,
-      submittedAt: new Date().toISOString()
-    };
-
-    console.log("[lead-form] payload", payload);
+    const companyValue = form.company?.value?.trim() || "";
 
     const requiredFields = ["fullName", "phone", "address", "city", "postalCode"];
-    const missingRequired = requiredFields.some((field) => !payload[field]);
+    const missingRequired = requiredFields.some((field) => !form[field]?.value?.trim());
 
-    let handled = false;
+    if (missingRequired) {
+      setStatus("Merci de remplir tous les champs obligatoires.", "error");
+      toggleSubmitting(false);
+      return;
+    }
 
-    try {
-      if (missingRequired) {
-        setStatus("Merci de remplir tous les champs obligatoires.", "error");
-        return;
-      }
+    if (!form.consent?.checked) {
+      setStatus("Veuillez accepter d’être contacté(e) pour l’étude.", "error");
+      toggleSubmitting(false);
+      return;
+    }
 
-      if (!payload.consent) {
-        setStatus("Veuillez accepter d’être contacté(e) pour l’étude.", "error");
-        return;
-      }
-
-      const response = await fetch(MAKE_WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      console.log("[lead-form] response status", response.status);
-
-      if (!response.ok) {
-        throw new Error(`Webhook HTTP ${response.status}`);
-      }
-
-      handled = true;
+    const showSuccessUI = () => {
       setStatus("Demande envoyée ✅ Je vous contacte sous 24h.", "success");
       if (successBox) successBox.hidden = false;
-
+      scrollToSuccess();
+      toggleSubmitting(false);
       setTimeout(() => {
         form.reset();
-        toggleSubmitting(false);
-      }, 1000);
+      }, 800);
+    };
+
+    // Honeypot: pretend success but skip the network call.
+    if (companyValue) {
+      debugLog("[lead-form] honeypot filled, skipping webhook");
+      showSuccessUI();
+      return;
+    }
+
+    try {
+      const formData = new FormData(form);
+      debugLog("[lead-form] sending FormData");
+
+      await fetch(webhook, {
+        method: "POST",
+        body: formData,
+        mode: "no-cors"
+      });
+
+      debugLog("[lead-form] fetch resolved");
+      showSuccessUI();
     } catch (error) {
-      console.error("[lead-form] submit error", error);
+      debugLog("[lead-form] submit error", error);
       setStatus("Erreur d’envoi. Merci de réessayer ou appelez-moi au +33 7 63 55 96 00.", "error");
-    } finally {
-      if (!handled) {
-        toggleSubmitting(false);
-      }
+      toggleSubmitting(false);
     }
   });
 });
